@@ -1,2 +1,3 @@
 *.o
+.d
 src/cpp/tests/test-coroutine1/test1
