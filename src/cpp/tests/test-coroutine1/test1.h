@@ -6,10 +6,14 @@
 template<typename T>
 class gen{
 public:
+  // typedefs
+  struct promise_type;
+  using handle_t=std::experimental::coroutine_handle<promise_type>;
+
   // promise_type for coroutine
   struct promise_type{
     T currval_;
-    std::experimental::suspend_always yield_value(T val){           // called when 'yield' + returns an 'awaiter'
+    std::experimental::suspend_always yield_value(T val){            // called when 'yield' + returns an 'awaiter'
       currval_=val;
       return {};
     }
@@ -22,7 +26,7 @@ public:
   // iterator interface
   class iterator{
   public:
-    iterator(std::experimental::coroutine_handle<promise_type>handle,bool done):
+    iterator(handle_t handle,bool done):
         handle_(handle),done_(done){}
     iterator&operator++(){
       handle_.resume();
@@ -34,7 +38,7 @@ public:
     T const&operator*()const{return handle_.promise().currval_;}
     T const*operator->(){return &(operator*());}
   private:
-    std::experimental::coroutine_handle<promise_type>handle_;
+    handle_t handle_;
     bool done_;
   };
   iterator begin(){
@@ -59,8 +63,8 @@ public:
   }
 private:
   // ctor - called from promise.get_return_object()
-  gen(promise_type*prom):cohandle_(std::experimental::coroutine_handle<promise_type>::from_promise(*prom)){}
+  gen(promise_type*prom):cohandle_(handle_t::from_promise(*prom)){}
 
   // state of this coroutine object
-  std::experimental::coroutine_handle<promise_type>cohandle_;
+  handle_t cohandle_;
 };
